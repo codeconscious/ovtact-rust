@@ -24,17 +24,17 @@ pub struct VideoResource {
 }
 
 impl VideoResource {
-    pub fn build(url: String) -> Option<VideoResource> {
+    pub fn build(url: String) -> Result<VideoResource, String> {
         let result = VideoResource::determine_video_type(url);
         match result {
             Some(r) => {
-                return Some(VideoResource {
+                return Ok(VideoResource {
                     resource_type: r.0,
                     resource_id: r.1,
                     url_base: "test".to_string(),
                 })
             }
-            None => None,
+            None => Err("Invalid URL.".to_string()),
         }
     }
 
@@ -55,8 +55,14 @@ impl VideoResource {
             let rgx = onig::Regex::new(p.0).unwrap();
             match rgx.captures(&url) {
                 Some(capts) => {
-                    let cap = capts.at(0).unwrap().to_string();
-                    return Some((p.1, cap));
+                    let position_pair = capts.pos(0);
+                    let matched_text = match position_pair {
+                        Some(v) => &url[v.0..v.1],
+                        None => panic!("Unexpected regex error")
+                    };
+
+                    // println!("Matched text: {}", matched_text);
+                    return Some((p.1, matched_text.to_string()));
                 }
                 None => continue,
             }
@@ -68,4 +74,10 @@ impl VideoResource {
     pub fn full_resource_uri(&self) -> String {
         self.url_base.clone() + &self.resource_id
     }
+}
+
+#[derive(Debug)]
+pub struct VideoDownloadError {
+    pub message: String,
+    pub inner: std::io::Error,
 }
