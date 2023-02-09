@@ -58,7 +58,7 @@ impl VideoResource {
                     let position_pair = capts.pos(0);
                     let matched_text = match position_pair {
                         Some(v) => &url[v.0..v.1],
-                        None => panic!("Unexpected regex error")
+                        None => panic!("Unexpected regex error"),
                     };
 
                     // println!("Matched text: {}", matched_text);
