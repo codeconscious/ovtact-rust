@@ -1,6 +1,8 @@
 use std::io;
 use std::io::Write;
 
+use crate::models::VideoResource;
+
 mod models;
 
 fn main() {
@@ -12,11 +14,18 @@ fn run() {
 
     loop {
         let input = ask_input();
-        println!("Got \"{}\"!", input);
 
         if quit_commands.iter().any(|&cmd| cmd == input.to_lowercase()) {
             println!("Quitting...");
             return;
+        }
+
+        let video = VideoResource::build(input);
+        match video {
+            Some(v) => println!("Got a {} resource!", v.resource_type),
+            None => {
+                println!("Failed to get a video resource.")
+            }
         }
     }
 }

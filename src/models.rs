@@ -1,13 +1,26 @@
-pub struct VideoResource {
-    resource_type: VideoSource, // TODO: Determine if actually needed. (Maybe just a `name` is sufficient?)
-    resource_id: String,
-    url_base: String,
-}
+use std::fmt;
 
-enum VideoSource {
+pub enum VideoType {
     YouTubeVideo,
     YouTubePlaylist,
     YouTubeChannel,
+}
+
+impl fmt::Display for VideoType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = match self {
+            VideoType::YouTubeVideo => "YouTube video",
+            VideoType::YouTubePlaylist => "YouTube playlist",
+            VideoType::YouTubeChannel => "YouTube channel",
+        };
+        write!(f, "{}", text)
+    }
+}
+
+pub struct VideoResource {
+    pub resource_type: VideoType,
+    pub resource_id: String,
+    pub url_base: String,
 }
 
 impl VideoResource {
@@ -25,27 +38,24 @@ impl VideoResource {
         }
     }
 
-    fn determine_video_type(url: String) -> Option<(VideoSource, String)> {
-        use regex::Regex;
-
+    fn determine_video_type(url: String) -> Option<(VideoType, String)> {
         let resource_regex_pairs = vec![
             (
                 r"^[\w-]{11}$|(?<=v=|v\\=)[\w-]{11}|(?<=youtu\.be/).{11}",
-                VideoSource::YouTubeVideo,
+                VideoType::YouTubeVideo,
             ),
-            (r"(?<=list=)[\w\-]+", VideoSource::YouTubePlaylist),
+            (r"(?<=list=)[\w\-]+", VideoType::YouTubePlaylist),
             (
                 r"(?:www\.)?youtube\.com/(?:c/|channel/|@|user/)[\w\-]+",
-                VideoSource::YouTubeChannel,
+                VideoType::YouTubeChannel,
             ),
         ];
 
         for p in resource_regex_pairs {
-            let rgx = Regex::new(p.0).unwrap();
+            let rgx = onig::Regex::new(p.0).unwrap();
             match rgx.captures(&url) {
-                Some(caps) => {
-                    let cap = caps.get(0).unwrap().as_str().to_string();
-                    dbg!("{}", &cap);
+                Some(capts) => {
+                    let cap = capts.at(0).unwrap().to_string();
                     return Some((p.1, cap));
                 }
                 None => continue,
@@ -55,7 +65,7 @@ impl VideoResource {
         return None;
     }
 
-    fn full_resource_uri(&self) -> String {
+    pub fn full_resource_uri(&self) -> String {
         self.url_base.clone() + &self.resource_id
     }
 }
