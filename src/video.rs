@@ -31,23 +31,29 @@ impl VideoResource {
                 return Ok(VideoResource {
                     resource_type: r.0,
                     resource_id: r.1,
-                    url_base: "test".to_string(),
+                    url_base: r.2,
                 })
             }
             None => Err("Invalid URL.".to_string()),
         }
     }
 
-    fn determine_video_type(url: String) -> Option<(VideoType, String)> {
+    fn determine_video_type(url: String) -> Option<(VideoType, String, String)> {
         let resource_regex_pairs = vec![
             (
                 r"^[\w-]{11}$|(?<=v=|v\\=)[\w-]{11}|(?<=youtu\.be/).{11}",
                 VideoType::YouTubeVideo,
+                "https://www.youtube.com/watch?v=",
             ),
-            (r"(?<=list=)[\w\-]+", VideoType::YouTubePlaylist),
+            (
+                r"(?<=list=)[\w\-]+",
+                VideoType::YouTubePlaylist,
+                "https://www.youtube.com/playlist?list=",
+            ),
             (
                 r"(?:www\.)?youtube\.com/(?:c/|channel/|@|user/)[\w\-]+",
                 VideoType::YouTubeChannel,
+                "https://",
             ),
         ];
 
@@ -61,8 +67,7 @@ impl VideoResource {
                         None => panic!("Unexpected regex error"),
                     };
 
-                    // println!("Matched text: {}", matched_text);
-                    return Some((p.1, matched_text.to_string()));
+                    return Some((p.1, matched_text.to_string(), p.2.to_string()));
                 }
                 None => continue,
             }
