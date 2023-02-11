@@ -31,7 +31,7 @@ fn run() -> (u32, u32) {
         let video = match VideoResource::build(input) {
             Ok(v) => v,
             Err(e) => {
-                println!("Failed to get a video resource: {}", e);
+                eprintln!("Failed to get a video resource: {}", e);
                 continue;
             }
         };
@@ -42,7 +42,7 @@ fn run() -> (u32, u32) {
                 successes += 1;
             }
             Err(e) => {
-                println!("Download failed: {}", e.message);
+                eprintln!("Download failed: {}", e.message);
                 failures += 1;
             }
         }
